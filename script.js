@@ -234,3 +234,22 @@ function showToast(message) {
 }
 
 renderPets();
+function handleLogoClick(e) {
+  e.preventDefault();
+
+  // لو احنا في الصفحة الرئيسية
+  if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+    
+    // Scroll للأعلى الأول
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // بعد جزء صغير يعمل refresh
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+
+  } else {
+    // لو في صفحة تانية يرجع للهوم
+    window.location.href = 'index.html';
+  }
+}
