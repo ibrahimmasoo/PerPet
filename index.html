@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PerPet</title>
-  <meta name="description" content="PerPet static GitHub Pages site" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PerPet | Find Your Perfect Pet</title>
+
+  <!-- 🔥 SEO -->
+  <meta name="description" content="PerPet helps you find your perfect pet companion">
+
+  <!-- 🔥 Open Graph -->
+  <meta property="og:title" content="PerPet | Find Your Perfect Pet">
+  <meta property="og:description" content="Adopt pets بسهولة مع PerPet">
+  <meta property="og:image" content="https://perpet.site/preview.jpg">
+  <meta property="og:url" content="https://perpet.site/">
+  <meta property="og:type" content="website">
+
 </head>
 <body>
 
@@ -115,6 +122,18 @@
   </div>
 
   <script src="script.js"></script>
-
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "PerPet",
+  "url": "https://perpet.site/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://perpet.site/?search={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 </body>
 </html>
