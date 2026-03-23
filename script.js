@@ -68,56 +68,27 @@ let pets = loadPets();
 
 function loadPets() {
   const stored = localStorage.getItem('perpet-static-pets');
-  if (!stored) return [...defaultPets];
+
+  if (!stored) {
+    return [...defaultPets];
+  }
+
   try {
     const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [...defaultPets];
+    }
     return [...defaultPets, ...parsed];
-  } catch {
+  } catch (error) {
     return [...defaultPets];
   }
 }
 
 function saveCustomPets() {
-  const customPets = pets.filter(pet => !defaultPets.some(defaultPet => defaultPet.id === pet.id));
+  const customPets = pets.filter(
+    pet => !defaultPets.some(defaultPet => defaultPet.id === pet.id)
+  );
   localStorage.setItem('perpet-static-pets', JSON.stringify(customPets));
-}
-
-function renderPets() {
-  if (!petGrid || !emptyState || !searchInput) return;
-
-  const query = searchInput.value.trim().toLowerCase();
-  const filtered = pets.filter(pet => {
-    const matchesType = currentFilter === 'all' || pet.type === currentFilter;
-    const matchesSearch = pet.name.toLowerCase().includes(query) || pet.description.toLowerCase().includes(query);
-    return matchesType && matchesSearch;
-  });
-
-  petGrid.innerHTML = '';
-
-  if (!filtered.length) {
-    emptyState.classList.remove('hidden');
-    return;
-  }
-
-  emptyState.classList.add('hidden');
-
-  filtered.forEach(pet => {
-    const card = document.createElement('article');
-    card.className = 'pet-card';
-    card.innerHTML = `
-      <div class="pet-thumb" style="background-image:url('${pet.image}')"></div>
-      <div class="pet-body">
-        <div class="pet-topline">
-          <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
-          <span class="pet-badge">${pet.type}</span>
-        </div>
-        <p class="pet-meta">${pet.age} year${Number(pet.age) === 1 ? '' : 's'} old</p>
-        <p class="pet-desc">${escapeHtml(pet.description)}</p>
-        <button class="btn btn-dark" type="button">Adopt ${escapeHtml(pet.name)}</button>
-      </div>
-    `;
-    petGrid.appendChild(card);
-  });
 }
 
 function escapeHtml(value) {
@@ -129,59 +100,186 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-filterButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    currentFilter = button.dataset.filter;
-    filterButtons.forEach(btn => btn.classList.remove('active'));
-    button.classList.add('active');
-    renderPets();
+function renderPets() {
+  if (!petGrid) return;
+
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  const filtered = pets.filter(pet => {
+    const matchesType = currentFilter === 'all' || pet.type === currentFilter;
+    const matchesSearch =
+      pet.name.toLowerCase().includes(query) ||
+      pet.description.toLowerCase().includes(query);
+
+    return matchesType && matchesSearch;
   });
-});
 
-if (searchInput) searchInput.addEventListener('input', renderPets);
+  petGrid.innerHTML = '';
 
-if (petForm) {
-  petForm.addEventListener('submit', event => {
-    event.preventDefault();
-    const formData = new FormData(petForm);
-    const newPet = {
-      id: Date.now(),
-      name: formData.get('name').toString().trim(),
-      type: formData.get('type').toString(),
-      age: Number(formData.get('age')),
-      image: formData.get('image').toString().trim(),
-      description: formData.get('description').toString().trim()
-    };
+  if (!filtered.length) {
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
 
-    pets.unshift(newPet);
-    saveCustomPets();
-    petForm.reset();
-    currentFilter = 'all';
-    filterButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === 'all'));
-    showToast(`${newPet.name} was added successfully.`);
-    window.location.href = 'find-pet.html';
+  if (emptyState) emptyState.classList.add('hidden');
+
+  filtered.forEach(pet => {
+    const card = document.createElement('article');
+    card.className = 'pet-card';
+
+    card.innerHTML = `
+      <div class="pet-thumb" style="background-image:url('${pet.image}')"></div>
+      <div class="pet-body">
+        <div class="pet-topline">
+          <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
+          <span class="pet-badge">${escapeHtml(pet.type)}</span>
+        </div>
+        <p class="pet-meta">${Number(pet.age)} year${Number(pet.age) === 1 ? '' : 's'} old</p>
+        <p class="pet-desc">${escapeHtml(pet.description)}</p>
+        <button class="btn btn-dark" type="button">Adopt ${escapeHtml(pet.name)}</button>
+      </div>
+    `;
+
+    petGrid.appendChild(card);
   });
+}
+
+function showToast(message) {
+  const oldToast = document.querySelector('.toast');
+  if (oldToast) oldToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 2500);
 }
 
 function openModal() {
   if (!signInModal) return;
   signInModal.classList.remove('hidden');
   signInModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
   if (!signInModal) return;
   signInModal.classList.add('hidden');
   signInModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
 }
 
-if (signInBtn) signInBtn.addEventListener('click', openModal);
-if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-if (signInModal) {
-  signInModal.addEventListener('click', event => {
-    if (event.target.hasAttribute('data-close')) closeModal();
+function handleLogoClick(event) {
+  if (event) event.preventDefault();
+
+  const currentPath = window.location.pathname;
+  const currentPage = currentPath.split('/').pop();
+
+  const isHome =
+    currentPage === '' ||
+    currentPage === 'index.html' ||
+    currentPath === '/' ||
+    currentPath.endsWith('/');
+
+  if (isHome) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    setTimeout(() => {
+      window.location.href = 'index.html?refresh=' + Date.now();
+    }, 300);
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+window.handleLogoClick = handleLogoClick;
+
+if (filterButtons.length) {
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter || 'all';
+
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      renderPets();
+    });
   });
 }
+
+if (searchInput) {
+  searchInput.addEventListener('input', renderPets);
+}
+
+if (petForm) {
+  petForm.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const formData = new FormData(petForm);
+
+    const name = String(formData.get('name') || '').trim();
+    const type = String(formData.get('type') || '').trim().toLowerCase();
+    const age = Number(formData.get('age'));
+    const image = String(formData.get('image') || '').trim();
+    const description = String(formData.get('description') || '').trim();
+
+    if (!name || !type || !age || !image || !description) {
+      showToast('Please fill in all fields.');
+      return;
+    }
+
+    const newPet = {
+      id: Date.now(),
+      name,
+      type,
+      age,
+      image,
+      description
+    };
+
+    pets.unshift(newPet);
+    saveCustomPets();
+    petForm.reset();
+
+    currentFilter = 'all';
+
+    if (filterButtons.length) {
+      filterButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === 'all');
+      });
+    }
+
+    showToast(`${newPet.name} was added successfully.`);
+
+    setTimeout(() => {
+      window.location.href = 'find-pet.html';
+    }, 500);
+  });
+}
+
+if (signInBtn) {
+  signInBtn.addEventListener('click', openModal);
+}
+
+if (closeModalBtn) {
+  closeModalBtn.addEventListener('click', closeModal);
+}
+
+if (signInModal) {
+  signInModal.addEventListener('click', event => {
+    if (event.target.hasAttribute('data-close') || event.target.classList.contains('modal-backdrop')) {
+      closeModal();
+    }
+  });
+}
+
 if (fakeGoogleBtn) {
   fakeGoogleBtn.addEventListener('click', () => {
     closeModal();
@@ -190,7 +288,9 @@ if (fakeGoogleBtn) {
 }
 
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') closeModal();
+  if (event.key === 'Escape') {
+    closeModal();
+  }
 });
 
 if (menuBtn && navLinks) {
@@ -199,21 +299,17 @@ if (menuBtn && navLinks) {
   });
 
   document.querySelectorAll('.nav-links a').forEach(link => {
-    link.addEventListener('click', () => navLinks.classList.remove('open'));
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+    });
   });
 }
 
-brandLinks.forEach(link => {
-  link.addEventListener('click', event => {
-    event.preventDefault();
-    const current = window.location.pathname.split('/').pop() || 'index.html';
-    if (current === '' || current === 'index.html') {
-      window.location.reload();
-      return;
-    }
-    window.location.href = 'index.html';
+if (brandLinks.length) {
+  brandLinks.forEach(link => {
+    link.addEventListener('click', handleLogoClick);
   });
-});
+}
 
 if (contactForm) {
   contactForm.addEventListener('submit', event => {
@@ -221,16 +317,6 @@ if (contactForm) {
     contactForm.reset();
     showToast('Thanks! Your message was sent.');
   });
-}
-
-function showToast(message) {
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 2500);
 }
 
 renderPets();
