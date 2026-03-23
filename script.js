@@ -1,3 +1,17 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDuj_luq_gHB13FMwYJ2XEzrhf7jo0L3mc",
+  authDomain: "perpet-84bbb.firebaseapp.com",
+  projectId: "perpet-84bbb",
+  storageBucket: "perpet-84bbb.firebasestorage.app",
+  messagingSenderId: "393990144375",
+  appId: "1:393990144375:web:55dcfb576720d282b5a172",
+  measurementId: "G-NN4988BJF"
+};
+
+if (typeof firebase !== "undefined" && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
 const defaultPets = [
   {
     id: 1,
@@ -199,6 +213,36 @@ function handleLogoClick(event) {
   }
 }
 
+function signInWithGoogle() {
+  if (typeof firebase === "undefined") {
+    showToast('Firebase is not loaded.');
+    return;
+  }
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      closeModal();
+
+      const user = result.user;
+      const userName = user && user.displayName ? user.displayName : 'User';
+
+      showToast(`Welcome ${userName}`);
+    })
+    .catch((error) => {
+      console.error('Google sign-in error:', error);
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        showToast('Login popup was closed.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        showToast('This domain is not authorized in Firebase.');
+      } else {
+        showToast('Login failed');
+      }
+    });
+}
+
 window.handleLogoClick = handleLogoClick;
 
 if (filterButtons.length) {
@@ -281,10 +325,7 @@ if (signInModal) {
 }
 
 if (fakeGoogleBtn) {
-  fakeGoogleBtn.addEventListener('click', () => {
-    closeModal();
-    showToast('This static demo has no real authentication.');
-  });
+  fakeGoogleBtn.addEventListener('click', signInWithGoogle);
 }
 
 document.addEventListener('keydown', event => {
