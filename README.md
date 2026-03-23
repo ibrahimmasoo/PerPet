@@ -20,3 +20,4 @@ Notes:
 - Top navigation opens a separate page for each section.
 - Clicking the PerPet logo returns to home.
 - Added pets are stored in browser localStorage.
+Static GitHub Pages version.
