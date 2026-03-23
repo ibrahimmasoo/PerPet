@@ -146,5 +146,36 @@
     }
   }
   </script>
+  <!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuj_luq_gHB13FMwYJ2XEzrhf7jo0L3mc",
+    authDomain: "perpet-84bbb.firebaseapp.com",
+    projectId: "perpet-84bbb",
+    storageBucket: "perpet-84bbb.firebasestorage.app",
+    messagingSenderId: "393990144375",
+    appId: "1:393990144375:web:55dcfb576720d282b5a172",
+    measurementId: "G-NN4988BJF"
+  };
+
+  // initialize
+  firebase.initializeApp(firebaseConfig);
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  document.getElementById("fakeGoogleBtn").addEventListener("click", () => {
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        alert("Welcome " + result.user.displayName);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Login failed");
+      });
+  });
+</script>
 </body>
 </html>
