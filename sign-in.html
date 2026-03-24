@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | PerPet</title>
+  <meta name="description" content="Sign in to your PerPet account.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" onclick="handleLogoClick(event)" aria-label="PerPet home">
+        <span class="paw-icon">🐾</span>
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html">Find a Pet</a>
+        <a href="list-pet.html">List a Pet</a>
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="signInBtn" type="button">Sign In</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-page">
+      <div class="container auth-shell">
+        <div class="auth-card auth-card-wide">
+          <div class="auth-badge">🐾</div>
+          <span class="eyebrow auth-eyebrow">Welcome Back</span>
+          <h1>Sign in to your account</h1>
+          <p class="auth-copy">Use the email and password you created for PerPet.</p>
+
+          <form class="auth-form" id="emailSignInForm">
+            <label class="auth-field">
+              <span>Email</span>
+              <input type="email" name="email" id="signInEmail" placeholder="you@example.com" required>
+            </label>
+
+            <label class="auth-field">
+              <span>Password</span>
+              <input type="password" name="password" id="signInPassword" placeholder="Enter your password" minlength="6" required>
+            </label>
+
+            <button class="btn btn-dark full" type="submit">Sign In</button>
+          </form>
+
+          <div class="auth-divider"><span>or</span></div>
+
+          <button class="btn btn-light full" type="button" id="fakeGoogleBtn">Continue with Google</button>
+
+          <p class="auth-switch">Don’t have an account? <a href="create-account.html">Create account</a></p>
+          <a class="auth-back-link" href="index.html">← Back to home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <a class="brand footer-brand brand-home" href="index.html" onclick="handleLogoClick(event)">
+        <span class="paw-icon">🐾</span>
+        <span>PerPet</span>
+      </a>
+      <p>© 2026 PerPet. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="find-pet.html">Available Pets</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
