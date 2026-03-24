@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PerPet | Sign In</title>
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <a class="back-home" href="index.html">← Back to home</a>
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-panel">
+        <div class="auth-brand"><span class="brand-mark"></span> PerPet</div>
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-subtitle">Please enter your details to continue.</p>
+
+        <form class="auth-form" id="signInForm">
+          <div class="field">
+            <label for="signInEmail">Email address</label>
+            <input id="signInEmail" type="email" placeholder="name@example.com" required>
+          </div>
+          <div class="field">
+            <label for="signInPassword">Password</label>
+            <input id="signInPassword" type="password" placeholder="Enter your password" required>
+          </div>
+
+          <div class="auth-meta">
+            <label class="auth-check"><input type="checkbox"> <span>Remember for 30 days</span></label>
+            <a href="#" class="link" id="forgotPasswordLink">Forgot password</a>
+          </div>
+
+          <div id="authMessage" class="auth-message"></div>
+
+          <button class="btn-auth btn-primary" type="submit">Sign in</button>
+          <button class="btn-auth btn-google" type="button" id="googleSignInBtn"><span class="google-g">G</span> Sign in with Google</button>
+        </form>
+
+        <p class="auth-bottom">Don't have an account? <a class="link" href="signup.html">Sign up</a></p>
+      </div>
+
+      <div class="auth-visual" aria-hidden="true">
+        <div class="visual-wrap">
+          <div class="visual-lines"></div>
+          <div class="visual-monitor"></div>
+          <div class="visual-screen"></div>
+          <div class="visual-hair"></div>
+          <div class="visual-person-head"></div>
+          <div class="visual-body"></div>
+          <div class="visual-ok">✓</div>
+          <div class="visual-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
