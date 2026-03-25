@@ -1,0 +1,1 @@
+Fixed blank admin map by adding missing Leaflet CSS and JS includes to admin-dashboard.html and bumping cache to admin8.

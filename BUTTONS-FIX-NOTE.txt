@@ -1,0 +1,1 @@
+Fixed script.js syntax error: removed duplicated 'async' keyword from syncPetsFromFirestore. Bumped cache-busting to admin7.

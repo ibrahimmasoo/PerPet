@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | PerPet</title>
+  <meta name="description" content="PerPet admin dashboard." />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="style.css?v=admin8" />
+  <link rel="icon" type="image/jpeg" href="favicon.jpg?v=admin8">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" onclick="handleLogoClick(event)" aria-label="PerPet home">
+        <img src="logo.jpg?v=admin8" alt="PerPet logo" class="logo-img">
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html">Find a Pet</a>
+        <a href="list-pet.html">List a Pet</a>
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="messages-dashboard.html">Messages</a>
+        <a href="admin-dashboard.html" class="active">Admin</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="adminAuthBtn" type="button">Sign Out</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-shell-page">
+    <div class="container">
+      <div class="dashboard-header">
+        <div>
+          <span class="eyebrow">Admin only</span>
+          <h1>PerPet Control Center</h1>
+          <p>Manage your brand, homepage copy, page text, pets, and analytics from one dashboard. This page is restricted to your admin account.</p>
+        </div>
+        <div class="dashboard-actions">
+          <a class="btn btn-light" href="messages-dashboard.html">Open Inbox</a>
+          <button class="btn btn-dark" id="reloadAdminBtn" type="button">Refresh Data</button>
+        </div>
+      </div>
+
+      <section id="adminGate" class="dashboard-empty">
+        <h2>Checking admin access...</h2>
+        <p>Please wait while PerPet verifies your account.</p>
+      </section>
+
+      <section id="adminApp" class="admin-app hidden-panel">
+        <section class="dashboard-stats admin-stats-grid">
+          <article class="stat-card">
+            <h3>Total site visits</h3>
+            <strong id="totalSiteVisits">0</strong>
+          </article>
+          <article class="stat-card">
+            <h3>Home page visits</h3>
+            <strong id="homePageVisits">0</strong>
+          </article>
+          <article class="stat-card">
+            <h3>Messages received</h3>
+            <strong id="adminTotalMessages">0</strong>
+          </article>
+          <article class="stat-card">
+            <h3>Registered users</h3>
+            <strong id="adminTotalUsers">0</strong>
+          </article>
+          <article class="stat-card">
+            <h3>Total pets</h3>
+            <strong id="adminTotalPets">0</strong>
+          </article>
+        </section>
+
+        <section class="admin-grid">
+
+          <article class="admin-card">
+            <div class="admin-card-head">
+              <div>
+                <h2>Messages Dashboard</h2>
+                <p>View and manage all contact messages from users from inside the admin area.</p>
+              </div>
+            </div>
+            <div class="admin-actions-row">
+              <a href="messages-dashboard.html" class="btn btn-dark">Open Messages Dashboard</a>
+            </div>
+          </article>
+
+          <article class="admin-card">
+            <div class="admin-card-head">
+              <div>
+                <h2>Brand & global settings</h2>
+                <p>Update the logo image, favicon, brand name, footer text, and contact email site-wide.</p>
+              </div>
+            </div>
+            <form id="globalSettingsForm" class="admin-form">
+              <label><span>Brand name</span><input type="text" id="brandNameInput" placeholder="PerPet" /></label>
+              <label><span>Logo image URL</span><input type="text" id="logoUrlInput" placeholder="https://..." /></label>
+              <label><span>Favicon image URL</span><input type="text" id="faviconUrlInput" placeholder="https://..." /></label>
+              <label><span>Contact email</span><input type="email" id="contactEmailInput" placeholder="hello@perpet.site" /></label>
+              <label><span>Footer text</span><textarea id="footerTextInput" rows="3"></textarea></label>
+              <button class="btn btn-dark" type="submit">Save global settings</button>
+            </form>
+          </article>
+
+          <article class="admin-card">
+            <div class="admin-card-head">
+              <div>
+                <h2>Home page</h2>
+                <p>Edit the hero text, CTA buttons, and closing banner on the homepage.</p>
+              </div>
+            </div>
+            <form id="homeSettingsForm" class="admin-form">
+              <label><span>Hero badge</span><input type="text" id="homeEyebrowInput" /></label>
+              <label><span>Hero title</span><textarea id="homeTitleInput" rows="3"></textarea></label>
+              <label><span>Hero subtitle</span><textarea id="homeSubtitleInput" rows="4"></textarea></label>
+              <label><span>Hero image URL</span><input type="text" id="homeHeroImageInput" placeholder="https://..." /></label>
+              <div class="admin-two">
+                <label><span>Primary button text</span><input type="text" id="homePrimaryTextInput" /></label>
+                <label><span>Primary button link</span><input type="text" id="homePrimaryLinkInput" /></label>
+              </div>
+              <div class="admin-two">
+                <label><span>Secondary button text</span><input type="text" id="homeSecondaryTextInput" /></label>
+                <label><span>Secondary button link</span><input type="text" id="homeSecondaryLinkInput" /></label>
+              </div>
+              <label><span>Bottom CTA title</span><input type="text" id="homeBottomTitleInput" /></label>
+              <label><span>Bottom CTA text</span><textarea id="homeBottomTextInput" rows="3"></textarea></label>
+              <label><span>Bottom CTA button text</span><input type="text" id="homeBottomButtonInput" /></label>
+              <button class="btn btn-dark" type="submit">Save home page</button>
+            </form>
+          </article>
+
+          <article class="admin-card">
+            <div class="admin-card-head">
+              <div>
+                <h2>Other pages</h2>
+                <p>Edit the main headings and descriptions across Find, List, Why, and Contact pages.</p>
+              </div>
+            </div>
+            <form id="pageSettingsForm" class="admin-form">
+              <label><span>Find page title</span><input type="text" id="findTitleInput" /></label>
+              <label><span>Find page subtitle</span><textarea id="findSubtitleInput" rows="3"></textarea></label>
+              <label><span>List page title</span><input type="text" id="listTitleInput" /></label>
+              <label><span>List page subtitle</span><textarea id="listSubtitleInput" rows="3"></textarea></label>
+              <label><span>Why PerPet title</span><input type="text" id="whyTitleInput" /></label>
+              <label><span>Why PerPet subtitle</span><textarea id="whySubtitleInput" rows="3"></textarea></label>
+              <label><span>Contact page title</span><input type="text" id="contactTitleInput" /></label>
+              <label><span>Contact page subtitle</span><textarea id="contactSubtitleInput" rows="3"></textarea></label>
+              <label><span>Contact panel title</span><input type="text" id="contactPanelTitleInput" /></label>
+              <label><span>Contact panel text</span><textarea id="contactPanelTextInput" rows="3"></textarea></label>
+              <button class="btn btn-dark" type="submit">Save page text</button>
+            </form>
+          </article>
+
+          <article class="admin-card admin-card-span-2">
+            <div class="admin-card-head">
+              <div>
+                <h2>Pet manager</h2>
+                <p>Add, edit, and delete the pets that appear on your site. Images are managed by URL in this version.</p>
+              </div>
+            </div>
+            <form id="petManagerForm" class="admin-form">
+              <input type="hidden" id="petDocId" />
+              <div class="admin-two">
+                <label><span>Pet name</span><input type="text" id="petNameInput" required /></label>
+                <label><span>Type</span>
+                  <select id="petTypeInput" required>
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                  </select>
+                </label>
+              </div>
+              <div class="admin-two">
+                <label><span>Age</span><input type="number" id="petAgeInput" min="0" max="30" required /></label>
+                <label><span>Image URL</span><input type="text" id="petImageInput" required /></label>
+              </div>
+              <label><span>Description</span><textarea id="petDescriptionInput" rows="4" required></textarea></label>
+              <div class="admin-actions-row">
+                <button class="btn btn-dark" type="submit" id="savePetBtn">Save pet</button>
+                <button class="btn btn-light" type="button" id="resetPetBtn">Clear form</button>
+              </div>
+            </form>
+
+            <div class="admin-pets-list" id="adminPetsList"></div>
+          </article>
+        
+          <article class="admin-card admin-card-span-2">
+            <div class="admin-card-head">
+              <div>
+                <h2>User location map</h2>
+                <p>Track where visitors used Near me. The map uses approximate coordinates for privacy.</p>
+              </div>
+            </div>
+
+            <div class="location-map-toolbar">
+              <select id="locationTimeFilter">
+                <option value="all">All time</option>
+                <option value="1">Last 24 hours</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+              <button class="btn btn-light" id="refreshLocationMapBtn" type="button">Refresh map</button>
+            </div>
+
+            <div id="userLocationMap" class="user-location-map"></div>
+            <div id="userLocationsList" class="user-locations-list"></div>
+          </article>
+
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="admin.js?v=admin8?v=admin4"></script>
+</body>
+</html>
