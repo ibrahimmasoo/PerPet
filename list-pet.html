@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List a Pet | PerPet</title>
+  <meta name="description" content="PerPet static GitHub Pages site" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=admin6" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" aria-label="PerPet home">
+        <img src="logo.jpg?v=admin6" alt="PerPet logo" class="logo-img">
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html" >Find a Pet</a>
+        <a href="list-pet.html" class="active">List a Pet</a>
+        <a href="why-perpet.html" >Why PerPet</a>
+        <a href="contact.html" >Contact</a>
+              <a href="admin-dashboard.html" id="adminNavLink" class="admin-nav-link hidden">Admin</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="signInBtn" type="button">Sign In</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="page-hero">
+      <div class="container">
+        <div class="hero-panel">
+          <span class="eyebrow" id="listEyebrow">List a Pet</span>
+          <h1 id="listHeroTitle">Help a pet find a forever family.</h1>
+          <p id="listHeroSubtitle">Use this page to submit a pet for adoption. The listing is saved in the browser so the site still works as a static GitHub Pages website.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="add-pet section">
+      <div class="container form-wrap">
+        <div class="form-card">
+          <div class="section-head left">
+            <div>
+              <h2 id="listSectionTitle">List a Pet</h2>
+              <p id="listSectionText">Provide accurate details so adopters can discover the perfect match.</p>
+            </div>
+          </div>
+
+          <form id="petForm" class="pet-form">
+            <div class="form-grid">
+              <label>
+                <span>Pet Name</span>
+                <input type="text" name="name" placeholder="e.g. Buddy" required />
+              </label>
+              <label>
+                <span>Type</span>
+                <select name="type" required>
+                  <option value="dog">Dog</option>
+                  <option value="cat">Cat</option>
+                </select>
+              </label>
+              <label>
+                <span>Age (Years)</span>
+                <input type="number" name="age" min="0" max="30" placeholder="e.g. 2" required />
+              </label>
+              <label>
+                <span>Image URL</span>
+                <input type="url" name="image" placeholder="https://images.unsplash.com/..." required />
+              </label>
+            </div>
+
+            <label>
+              <span>Description</span>
+              <textarea name="description" rows="5" placeholder="Tell us about the pet's personality, habits, and needs..." required></textarea>
+            </label>
+
+            <div class="location-form-box">
+              <div class="section-head left compact-head">
+                <div>
+                  <h3>Location details</h3>
+                  <p>Add a city at minimum. You can also use your current location so nearby users can find this pet faster.</p>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span>City</span>
+                  <input type="text" name="city" id="petCityInput" placeholder="e.g. Bartin" required />
+                </label>
+                <label>
+                  <span>Area / District</span>
+                  <input type="text" name="area" id="petAreaInput" placeholder="e.g. Merkez" />
+                </label>
+              </div>
+
+              <div class="location-form-actions">
+                <button class="btn btn-light" type="button" id="useCurrentLocationBtn">Use my current location</button>
+                <p class="location-status" id="petLocationStatus">You can submit with city only, or add your live location for better nearby matching.</p>
+              </div>
+
+              <input type="hidden" name="lat" id="petLatInput" />
+              <input type="hidden" name="lng" id="petLngInput" />
+            </div>
+
+            <button class="btn btn-dark full" type="submit">Post Pet for Adoption</button>
+            <p class="form-note">After submission, you will be redirected to the Find a Pet page.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <a class="brand footer-brand brand-home" href="index.html">
+        
+        <span>PerPet</span>
+      </a>
+      <p id="siteFooterText">© 2026 PerPet. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="find-pet.html">Available Pets</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal hidden" id="signInModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" id="closeModalBtn" type="button" aria-label="Close">×</button>
+      <div class="modal-icon">🐾</div>
+      <h3>Welcome to PerPet</h3>
+      <p>Join our community of pet lovers and find your perfect companion.</p>
+      <button class="btn btn-light full" type="button" id="fakeGoogleBtn">Continue with Google</button>
+      <small>Sign in with your Google account to continue.</small>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="script.js?v=admin6"></script>
+
+</body>
+</html>

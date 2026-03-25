@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find a Pet | PerPet</title>
+  <meta name="description" content="PerPet static GitHub Pages site" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=admin6" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" aria-label="PerPet home">
+        <img src="logo.jpg?v=admin6" alt="PerPet logo" class="logo-img">
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html" class="active">Find a Pet</a>
+        <a href="list-pet.html" >List a Pet</a>
+        <a href="why-perpet.html" >Why PerPet</a>
+        <a href="contact.html" >Contact</a>
+              <a href="admin-dashboard.html" id="adminNavLink" class="admin-nav-link hidden">Admin</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="signInBtn" type="button">Sign In</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="page-hero">
+      <div class="container">
+        <div class="hero-panel">
+          <span class="eyebrow" id="findEyebrow">Find a Pet</span>
+          <h1 id="findHeroTitle">Meet pets who need a loving home.</h1>
+          <p id="findHeroSubtitle">Browse available pets, search by name, and filter by type. New pets you add from the listing page will also appear here.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pets section">
+      <div class="container">
+        <div class="section-head pets-head">
+          <div>
+            <h2 id="findSectionTitle">Available Pets</h2>
+            <p id="findSectionText">Every pet deserves a loving home. Find yours today.</p>
+          </div>
+          <div class="pets-controls">
+            <label class="search-wrap">
+              <span>🔎</span>
+              <input type="search" id="searchInput" placeholder="Search pets..." />
+            </label>
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" type="button">All</button>
+              <button class="filter-btn" data-filter="dog" type="button">Dogs</button>
+              <button class="filter-btn" data-filter="cat" type="button">Cats</button>
+            </div>
+            <div class="location-toolbar">
+              <button class="btn btn-dark" id="nearMeBtn" type="button">Near me</button>
+              <select id="distanceRadiusSelect">
+                <option value="all">Any distance</option>
+                <option value="5">Within 5 km</option>
+                <option value="10">Within 10 km</option>
+                <option value="25">Within 25 km</option>
+                <option value="50">Within 50 km</option>
+              </select>
+              <select id="sortBySelect">
+                <option value="newest">Newest first</option>
+                <option value="closest">Closest first</option>
+              </select>
+            </div>
+            <div class="city-toolbar">
+              <input type="text" id="citySearchInput" placeholder="Or search by city if location is off" />
+              <button class="btn btn-light" id="applyCityFilterBtn" type="button">Use city</button>
+              <button class="btn btn-outline" id="clearLocationFiltersBtn" type="button">Clear</button>
+            </div>
+            <p class="location-status" id="locationStatus">Use Near me to see the closest pets, or search by city.</p>
+          </div>
+        </div>
+
+        <div class="pet-grid" id="petGrid"></div>
+        <div class="empty-state hidden" id="emptyState">
+          <div class="empty-icon">🐾</div>
+          <h3>No pets found</h3>
+          <p>Try adjusting your filters or search terms.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <a class="brand footer-brand brand-home" href="index.html">
+        
+        <span>PerPet</span>
+      </a>
+      <p id="siteFooterText">© 2026 PerPet. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="find-pet.html">Available Pets</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal hidden" id="signInModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" id="closeModalBtn" type="button" aria-label="Close">×</button>
+      <div class="modal-icon">🐾</div>
+      <h3>Welcome to PerPet</h3>
+      <p>Join our community of pet lovers and find your perfect companion.</p>
+      <button class="btn btn-light full" type="button" id="fakeGoogleBtn">Continue with Google</button>
+      <small>Sign in with your Google account to continue.</small>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="script.js?v=admin6"></script>
+
+</body>
+</html>
