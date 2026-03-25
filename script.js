@@ -1,0 +1,1122 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDuj_luq_gHB13FMwYJ2xEzrhf7joOL3mc",
+  authDomain: "perpet-84bbb.firebaseapp.com",
+  projectId: "perpet-84bbb",
+  storageBucket: "perpet-84bbb.firebasestorage.app",
+  messagingSenderId: "393990144375",
+  appId: "1:393990144375:web:55dcfb576720d282b5a172",
+  measurementId: "G-NN4988BJF"
+};
+
+const ADMIN_EMAIL = 'ibrahimashrf301@gmail.com';
+
+const emailJsConfig = {
+  publicKey: "0JbuOZFn-Rfl48Z3c",
+  serviceId: "service_tgs5bxy",
+  templateId: "template_qjggt39"
+};
+
+function isEmailJsConfigured() {
+  return (
+    typeof emailjs !== "undefined" &&
+    emailJsConfig.publicKey &&
+    emailJsConfig.serviceId &&
+    emailJsConfig.templateId &&
+    !emailJsConfig.publicKey.includes("PUT_YOUR") &&
+    !emailJsConfig.serviceId.includes("PUT_YOUR") &&
+    !emailJsConfig.templateId.includes("PUT_YOUR")
+  );
+}
+
+function initEmailJsIfReady() {
+  if (!isEmailJsConfigured()) return false;
+  try {
+    emailjs.init({ publicKey: emailJsConfig.publicKey });
+    return true;
+  } catch (error) {
+    console.error("EmailJS init error:", error);
+    return false;
+  }
+}
+
+async function sendContactEmailNotification({ name, email, message }) {
+  if (!isEmailJsConfigured()) return { skipped: true, reason: "not-configured" };
+
+  try {
+    if (typeof emailjs === "undefined") {
+      return { skipped: true, reason: "library-missing" };
+    }
+
+    await emailjs.send(emailJsConfig.serviceId, emailJsConfig.templateId, {
+      from_name: name,
+      from_email: email,
+      sender_name: name,
+      sender_email: email,
+      reply_to: email,
+      message,
+      website_name: "PerPet"
+    });
+
+    return { ok: true };
+  } catch (error) {
+    console.error("EmailJS send error:", error);
+    return { ok: false, error };
+  }
+}
+
+
+let auth = null;
+let db = null;
+
+if (typeof firebase !== "undefined") {
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+    if (firebase.firestore) {
+      db = firebase.firestore();
+    }
+  } catch (error) {
+    console.error("Firebase init error:", error);
+  }
+}
+
+initEmailJsIfReady();
+
+const defaultPets = [
+  {
+    id: 1,
+    name: 'Buddy',
+    type: 'dog',
+    age: 2,
+    description: 'Friendly, playful, and loves long walks in the park.',
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=1200'
+  },
+  {
+    id: 2,
+    name: 'Luna',
+    type: 'cat',
+    age: 1,
+    description: 'Gentle indoor cat who enjoys sunny windows and soft blankets.',
+    image: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&q=80&w=1200'
+  },
+  {
+    id: 3,
+    name: 'Max',
+    type: 'dog',
+    age: 4,
+    description: 'Calm, loyal, and already trained for basic home routines.',
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&q=80&w=1200'
+  },
+  {
+    id: 4,
+    name: 'Milo',
+    type: 'cat',
+    age: 3,
+    description: 'Curious and affectionate cat who loves attention and toys.',
+    image: 'https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=1200'
+  },
+  {
+    id: 5,
+    name: 'Daisy',
+    type: 'dog',
+    age: 5,
+    description: 'Sweet family dog with a gentle nature and a big heart.',
+    image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&q=80&w=1200'
+  },
+  {
+    id: 6,
+    name: 'Nala',
+    type: 'cat',
+    age: 2,
+    description: 'Elegant, relaxed, and perfect for a quiet cozy home.',
+    image: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&q=80&w=1200'
+  }
+];
+
+const petGrid = document.getElementById('petGrid');
+const emptyState = document.getElementById('emptyState');
+const searchInput = document.getElementById('searchInput');
+const filterButtons = document.querySelectorAll('.filter-btn');
+const petForm = document.getElementById('petForm');
+const signInBtn = document.getElementById('signInBtn');
+const signInModal = document.getElementById('signInModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const fakeGoogleBtn = document.getElementById('fakeGoogleBtn');
+const menuBtn = document.getElementById('menuBtn');
+const navLinks = document.getElementById('navLinks');
+const contactForm = document.getElementById('contactForm');
+const brandLinks = document.querySelectorAll('.brand-home');
+const contactStatus = document.getElementById('contactStatus');
+const dashboardList = document.getElementById('messagesList');
+const dashboardLoading = document.getElementById('dashboardLoading');
+const dashboardEmpty = document.getElementById('dashboardEmpty');
+const totalMessagesEl = document.getElementById('totalMessages');
+const todayMessagesEl = document.getElementById('todayMessages');
+const latestSenderEl = document.getElementById('latestSender');
+const refreshMessagesBtn = document.getElementById('refreshMessagesBtn');
+const dashboardUserBtn = document.getElementById('dashboardUserBtn');
+const signInNotice = document.getElementById('signInNotice');
+const adminNavLink = document.getElementById('adminNavLink');
+const nearMeBtn = document.getElementById('nearMeBtn');
+const distanceRadiusSelect = document.getElementById('distanceRadiusSelect');
+const sortBySelect = document.getElementById('sortBySelect');
+const citySearchInput = document.getElementById('citySearchInput');
+const applyCityFilterBtn = document.getElementById('applyCityFilterBtn');
+const clearLocationFiltersBtn = document.getElementById('clearLocationFiltersBtn');
+const locationStatus = document.getElementById('locationStatus');
+const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+const petCityInput = document.getElementById('petCityInput');
+const petAreaInput = document.getElementById('petAreaInput');
+const petLatInput = document.getElementById('petLatInput');
+const petLngInput = document.getElementById('petLngInput');
+const petLocationStatus = document.getElementById('petLocationStatus');
+
+let currentFilter = 'all';
+let pets = [];
+let currentUser = null;
+let siteSettingsCache = null;
+let userLocation = null;
+let locationCityFilter = localStorage.getItem('perpet-city-filter') || '';
+let sortMode = localStorage.getItem('perpet-sort-mode') || 'newest';
+let radiusMode = localStorage.getItem('perpet-radius-mode') || 'all';
+
+function loadPets() {
+  const stored = localStorage.getItem('perpet-static-pets');
+  if (!stored) return [...defaultPets];
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed)
+      ? parsed.map(item => ({
+          ...item,
+          city: item.city || '',
+          area: item.area || '',
+          lat: typeof item.lat === 'number' ? item.lat : Number(item.lat || 0),
+          lng: typeof item.lng === 'number' ? item.lng : Number(item.lng || 0)
+        }))
+      : [...defaultPets];
+  } catch (error) {
+    console.warn('Could not parse stored pets:', error);
+    return [...defaultPets];
+  }
+}
+
+function saveCustomPets() {
+  localStorage.setItem('perpet-static-pets', JSON.stringify(pets));
+}
+
+async function syncPetsFromFirestore() {
+  if (!db) {
+    pets = loadPets();
+    renderPets();
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection('pets').orderBy('createdAt', 'desc').get();
+    if (!snapshot.empty) {
+      pets = snapshot.docs.map(doc => {
+        const data = doc.data() || {};
+        return {
+          id: doc.id,
+          name: data.name || '',
+          type: data.type || 'dog',
+          age: Number(data.age || 0),
+          image: data.image || '',
+          description: data.description || '',
+          city: data.city || '',
+          area: data.area || '',
+          lat: Number(data.lat || 0),
+          lng: Number(data.lng || 0),
+          createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().getTime() : Date.now()
+        };
+      });
+      saveCustomPets();
+    } else {
+      pets = loadPets();
+    }
+  } catch (error) {
+    console.error('Could not load Firestore pets:', error);
+    pets = loadPets();
+  }
+
+  renderPets();
+}
+
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getPetTimestamp(pet) {
+  return typeof pet.createdAt === 'number' ? pet.createdAt : Date.now();
+}
+
+function toRad(value) {
+  return (Number(value) * Math.PI) / 180;
+}
+
+function getDistanceKm(lat1, lng1, lat2, lng2) {
+  const valid = [lat1, lng1, lat2, lng2].every(item => Number.isFinite(Number(item)) && Number(item) !== 0);
+  if (!valid) return null;
+
+  const earthRadiusKm = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+function getPetLocationText(pet) {
+  const parts = [pet.area, pet.city].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Location not added';
+}
+
+function updateLocationStatus(message, type) {
+  const target = locationStatus || petLocationStatus;
+  if (!target) return;
+  target.textContent = message || '';
+  target.className = 'location-status' + (type ? ' ' + type : '');
+}
+
+function hydrateFindLocationInputs() {
+  if (citySearchInput && locationCityFilter) citySearchInput.value = locationCityFilter;
+  if (sortBySelect) sortBySelect.value = sortMode;
+  if (distanceRadiusSelect) distanceRadiusSelect.value = radiusMode;
+
+  try {
+    const stored = localStorage.getItem('perpet-user-location');
+    if (stored) {
+      userLocation = JSON.parse(stored);
+    }
+  } catch (error) {
+    console.warn('Could not read stored location:', error);
+  }
+}
+
+function saveUserLocation(lat, lng) {
+  userLocation = { lat: Number(lat), lng: Number(lng) };
+  localStorage.setItem('perpet-user-location', JSON.stringify(userLocation));
+}
+
+function applyCityFilter() {
+  locationCityFilter = citySearchInput ? citySearchInput.value.trim() : '';
+  localStorage.setItem('perpet-city-filter', locationCityFilter);
+  if (locationCityFilter) {
+    updateLocationStatus(`Showing pets in or near ${locationCityFilter}.`, 'success');
+  }
+  renderPets();
+}
+
+function clearLocationFilters() {
+  locationCityFilter = '';
+  if (citySearchInput) citySearchInput.value = '';
+  radiusMode = 'all';
+  sortMode = 'newest';
+  if (distanceRadiusSelect) distanceRadiusSelect.value = 'all';
+  if (sortBySelect) sortBySelect.value = 'newest';
+  localStorage.removeItem('perpet-city-filter');
+  localStorage.setItem('perpet-sort-mode', sortMode);
+  localStorage.setItem('perpet-radius-mode', radiusMode);
+  updateLocationStatus('Location filters cleared.', 'success');
+  renderPets();
+}
+
+function detectCurrentLocation() {
+  if (!navigator.geolocation) {
+    updateLocationStatus('Your browser does not support live location.', 'error');
+    return;
+  }
+
+  updateLocationStatus('Getting your current location...', 'success');
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      saveUserLocation(position.coords.latitude, position.coords.longitude);
+      saveApproxUserLocation(position.coords.latitude, position.coords.longitude);
+      sortMode = 'closest';
+      if (sortBySelect) sortBySelect.value = 'closest';
+      localStorage.setItem('perpet-sort-mode', sortMode);
+      updateLocationStatus('Showing the closest pets to you now.', 'success');
+      renderPets();
+    },
+    error => {
+      console.error('Geolocation error:', error);
+      updateLocationStatus('Location permission was denied. Use the city filter instead.', 'error');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+
+async function saveApproxUserLocation(lat, lng) {
+  if (!db || typeof firebase === 'undefined' || !firebase.firestore) return;
+
+  const safeLat = Number(Number(lat).toFixed(2));
+  const safeLng = Number(Number(lng).toFixed(2));
+
+  try {
+    await db.collection('userLocations').add({
+      email: auth?.currentUser?.email || '',
+      uid: auth?.currentUser?.uid || '',
+      lat: safeLat,
+      lng: safeLng,
+      action: 'near_me_used',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Could not save approximate user location:', error);
+  }
+}
+
+function setPetFormLocation(lat, lng) {
+  if (petLatInput) petLatInput.value = String(lat);
+  if (petLngInput) petLngInput.value = String(lng);
+}
+
+function capturePetLocationForListing() {
+  if (!navigator.geolocation) {
+    if (petLocationStatus) petLocationStatus.textContent = 'Your browser does not support live location. Submit with city only.';
+    return;
+  }
+
+  if (petLocationStatus) petLocationStatus.textContent = 'Getting your current location for this listing...';
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      setPetFormLocation(position.coords.latitude, position.coords.longitude);
+      if (petLocationStatus) petLocationStatus.textContent = 'Location added to the pet listing successfully.';
+    },
+    error => {
+      console.error('Listing geolocation error:', error);
+      if (petLocationStatus) petLocationStatus.textContent = 'Could not get your live location. You can still submit with city only.';
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+function renderPets() {
+  if (!petGrid) return;
+
+  const query = searchInput ? normalizeText(searchInput.value) : '';
+  const radiusKm = radiusMode === 'all' ? null : Number(radiusMode);
+
+  const prepared = pets
+    .map(pet => {
+      const distanceKm = userLocation
+        ? getDistanceKm(userLocation.lat, userLocation.lng, Number(pet.lat || 0), Number(pet.lng || 0))
+        : null;
+      return { ...pet, distanceKm };
+    })
+    .filter(pet => {
+      const matchesType = currentFilter === 'all' || pet.type === currentFilter;
+      const locationText = normalizeText(`${pet.city || ''} ${pet.area || ''}`);
+      const matchesSearch =
+        normalizeText(pet.name).includes(query) ||
+        normalizeText(pet.description).includes(query) ||
+        locationText.includes(query);
+
+      const matchesCity = !locationCityFilter || locationText.includes(normalizeText(locationCityFilter));
+      const matchesRadius = !radiusKm || (pet.distanceKm != null && pet.distanceKm <= radiusKm);
+
+      return matchesType && matchesSearch && matchesCity && matchesRadius;
+    })
+    .sort((a, b) => {
+      if (sortMode === 'closest') {
+        const aDistance = a.distanceKm == null ? Number.POSITIVE_INFINITY : a.distanceKm;
+        const bDistance = b.distanceKm == null ? Number.POSITIVE_INFINITY : b.distanceKm;
+        if (aDistance !== bDistance) return aDistance - bDistance;
+      }
+      return getPetTimestamp(b) - getPetTimestamp(a);
+    });
+
+  petGrid.innerHTML = '';
+
+  if (!prepared.length) {
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add('hidden');
+
+  prepared.forEach(pet => {
+    const card = document.createElement('article');
+    card.className = 'pet-card';
+
+    const locationText = getPetLocationText(pet);
+    const distanceMarkup = pet.distanceKm != null
+      ? `<div class="pet-distance">📍 ${escapeHtml(pet.distanceKm.toFixed(1))} km away</div>`
+      : '';
+
+    card.innerHTML = `
+      <div class="pet-thumb" style="background-image:url('${pet.image}')"></div>
+      <div class="pet-body">
+        ${distanceMarkup}
+        <div class="pet-topline">
+          <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
+          <span class="pet-badge">${escapeHtml(pet.type)}</span>
+        </div>
+        <p class="pet-meta">${Number(pet.age)} year${Number(pet.age) === 1 ? '' : 's'} old</p>
+        <p class="pet-location-meta">${escapeHtml(locationText)}</p>
+        <p class="pet-desc">${escapeHtml(pet.description)}</p>
+        <button class="btn btn-dark" type="button">Adopt ${escapeHtml(pet.name)}</button>
+      </div>
+    `;
+
+    petGrid.appendChild(card);
+  });
+}
+
+function isAdminUser(user) {
+  return !!(user && user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+}
+
+function applyText(selector, value) {
+  if (value == null || value === '') return;
+  const nodes = document.querySelectorAll(selector);
+  nodes.forEach(node => {
+    node.textContent = value;
+  });
+}
+
+function applyHtml(selector, value) {
+  if (value == null || value === '') return;
+  const nodes = document.querySelectorAll(selector);
+  nodes.forEach(node => {
+    node.innerHTML = value;
+  });
+}
+
+function applyLink(selector, textValue, hrefValue) {
+  const nodes = document.querySelectorAll(selector);
+  nodes.forEach(node => {
+    if (textValue) node.textContent = textValue;
+    if (hrefValue) node.setAttribute('href', hrefValue);
+  });
+}
+
+function applyImageSource(selector, value) {
+  if (!value) return;
+  const nodes = document.querySelectorAll(selector);
+  nodes.forEach(node => {
+    node.setAttribute('src', value);
+  });
+}
+
+function applyFavicon(value) {
+  if (!value) return;
+  const icons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+  icons.forEach(icon => icon.setAttribute('href', value));
+}
+
+function applyHeroBackground(url) {
+  if (!url) return;
+  const heroMedia = document.getElementById('homeHeroMedia');
+  if (!heroMedia) return;
+  heroMedia.style.background = `linear-gradient(to bottom, rgba(246, 243, 239, 0), rgba(246, 243, 239, 0.45) 60%, rgba(246, 243, 239, 1)), url("${url}") center/cover no-repeat`;
+}
+
+function applySiteSettings(settings) {
+  siteSettingsCache = settings || {};
+  applyText('.brand span:last-child, .footer-brand span:last-child, .auth-brand span:last-child', settings.brandName);
+  if (settings.logoUrl) {
+    applyImageSource('.logo-img, .brand-logo-image', settings.logoUrl);
+  } else {
+    applyImageSource('.logo-img, .brand-logo-image', 'logo.jpg?v=admin7');
+  }
+  if (settings.faviconUrl) {
+    applyFavicon(settings.faviconUrl);
+  }
+  applyText('#contactEmailText', settings.contactEmail);
+  applyText('#siteFooterText', settings.footerText);
+
+  applyText('#homeEyebrow', settings.homeEyebrow);
+  applyHtml('#homeHeroTitle', settings.homeHeroTitle);
+  applyText('#homeHeroSubtitle', settings.homeHeroSubtitle);
+  applyLink('#homePrimaryCta', settings.homePrimaryCtaText, settings.homePrimaryCtaLink);
+  applyLink('#homeSecondaryCta', settings.homeSecondaryCtaText, settings.homeSecondaryCtaLink);
+  applyText('#homeBottomCtaTitle', settings.homeBottomCtaTitle);
+  applyText('#homeBottomCtaText', settings.homeBottomCtaText);
+  applyText('#homeBottomCtaButton', settings.homeBottomCtaButton);
+  applyHeroBackground(settings.homeHeroImage);
+
+  applyText('#findHeroTitle', settings.findHeroTitle);
+  applyText('#findHeroSubtitle', settings.findHeroSubtitle);
+  applyText('#listHeroTitle', settings.listHeroTitle);
+  applyText('#listHeroSubtitle', settings.listHeroSubtitle);
+  applyText('#whyHeroTitle', settings.whyHeroTitle);
+  applyText('#whyHeroSubtitle', settings.whyHeroSubtitle);
+  applyText('#contactHeroTitle', settings.contactHeroTitle);
+  applyText('#contactHeroSubtitle', settings.contactHeroSubtitle);
+  applyText('#contactPanelTitle', settings.contactPanelTitle);
+  applyText('#contactPanelText', settings.contactPanelText);
+}
+
+async function loadSiteSettings() {
+  if (!db) return;
+  try {
+    const doc = await db.collection('siteContent').doc('main').get();
+    if (doc.exists) {
+      applySiteSettings(doc.data() || {});
+    }
+  } catch (error) {
+    console.error('Could not load site settings:', error);
+  }
+}
+
+async function trackPageView() {
+  if (!db || typeof firebase === 'undefined' || !firebase.firestore) return;
+  try {
+    const page = (window.location.pathname.split('/').pop() || 'index.html').replace(/\?.*$/, '') || 'index.html';
+    const totalRef = db.collection('analytics').doc('siteTotals');
+    const pageRef = db.collection('analytics').doc('page_' + page.replace(/[^a-zA-Z0-9]/g, '_'));
+    await totalRef.set({
+      totalVisits: firebase.firestore.FieldValue.increment(1),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    await pageRef.set({
+      page,
+      visits: firebase.firestore.FieldValue.increment(1),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error('Page view tracking failed:', error);
+  }
+}
+
+function showToast(message) {
+  const oldToast = document.querySelector('.toast');
+  if (oldToast) oldToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 2800);
+}
+
+function openModal() {
+  window.location.href = 'signin.html';
+}
+
+function closeModal() {
+  if (!signInModal) return;
+  signInModal.classList.add('hidden');
+  signInModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function updateAuthUI(user) {
+  currentUser = user || null;
+
+  if (adminNavLink) {
+    adminNavLink.classList.toggle('hidden', !isAdminUser(currentUser));
+  }
+
+  if (!signInBtn) return;
+
+  if (currentUser) {
+    const rawName = currentUser.displayName || currentUser.email || 'Account';
+    const name = rawName.split(' ')[0];
+    signInBtn.textContent = isAdminUser(currentUser) ? 'Admin' : name;
+    signInBtn.setAttribute('title', isAdminUser(currentUser) ? 'Open admin dashboard' : 'Click to sign out');
+  } else {
+    signInBtn.textContent = 'Sign In';
+    signInBtn.removeAttribute('title');
+  }
+}
+
+function handleLogoClick(event) {
+  if (event) event.preventDefault();
+
+  const currentPath = window.location.pathname;
+  const currentPage = currentPath.split('/').pop();
+
+  const isHome =
+    currentPage === '' ||
+    currentPage === 'index.html' ||
+    currentPath === '/' ||
+    currentPath.endsWith('/');
+
+  if (isHome) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    setTimeout(() => {
+      window.location.href = 'index.html?refresh=' + Date.now();
+    }, 300);
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+async function signOutCurrentUser() {
+  if (!auth || !auth.currentUser) return;
+
+  try {
+    await auth.signOut();
+    showToast('Signed out successfully.');
+  } catch (error) {
+    console.error('Sign out error:', error);
+    showToast('Could not sign out.');
+  }
+}
+
+function signInWithGoogle() {
+  if (!auth || typeof firebase === 'undefined') {
+    showToast('Firebase is not loaded.');
+    return;
+  }
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  auth.signInWithPopup(provider)
+    .then((result) => {
+      closeModal();
+
+      const user = result.user;
+      const userName = user && user.displayName ? user.displayName : 'User';
+
+      updateAuthUI(user);
+      showToast(`Welcome ${userName}`);
+    })
+    .catch((error) => {
+      console.error('Google sign-in error:', error);
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        showToast('Login popup was closed.');
+      } else if (error.code === 'auth/popup-blocked') {
+        showToast('Allow popups in your browser and try again.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        showToast('Add this domain to Firebase Authorized domains.');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        showToast('Enable Google sign-in in Firebase Authentication.');
+      } else if (error.code === 'auth/network-request-failed') {
+        showToast('Network error. Check your connection and try again.');
+      } else if (error.code) {
+        showToast(error.code);
+      } else {
+        showToast('Login failed');
+      }
+    });
+}
+
+window.handleLogoClick = handleLogoClick;
+
+if (auth) {
+  auth.onAuthStateChanged((user) => {
+    updateAuthUI(user);
+  });
+}
+
+if (filterButtons.length) {
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter || 'all';
+
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      renderPets();
+    });
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener('input', renderPets);
+}
+
+if (petForm) {
+  petForm.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const formData = new FormData(petForm);
+
+    const name = String(formData.get('name') || '').trim();
+    const type = String(formData.get('type') || '').trim().toLowerCase();
+    const age = Number(formData.get('age'));
+    const image = String(formData.get('image') || '').trim();
+    const description = String(formData.get('description') || '').trim();
+    const city = String(formData.get('city') || '').trim();
+    const area = String(formData.get('area') || '').trim();
+    const lat = Number(formData.get('lat') || 0);
+    const lng = Number(formData.get('lng') || 0);
+
+    if (!name || !type || !age || !image || !description || !city) {
+      showToast('Please fill in all fields.');
+      return;
+    }
+
+    const newPet = {
+      id: Date.now(),
+      name,
+      type,
+      age,
+      image,
+      description,
+      city,
+      area,
+      lat,
+      lng,
+      createdAt: Date.now()
+    };
+
+    pets.unshift(newPet);
+    saveCustomPets();
+    petForm.reset();
+
+    if (db && typeof firebase !== 'undefined' && firebase.firestore) {
+      db.collection('pets').add({
+        name,
+        type,
+        age,
+        image,
+        description,
+        city,
+        area,
+        lat,
+        lng,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(error => console.error('Could not save pet to Firestore:', error));
+    }
+
+    currentFilter = 'all';
+
+    if (filterButtons.length) {
+      filterButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === 'all');
+      });
+    }
+
+    showToast(`${newPet.name} was added successfully with location details.`);
+
+    setTimeout(() => {
+      window.location.href = 'find-pet.html';
+    }, 500);
+  });
+}
+
+if (signInBtn) {
+  signInBtn.addEventListener('click', () => {
+    if (currentUser && isAdminUser(currentUser)) {
+      window.location.href = 'admin-dashboard.html';
+      return;
+    }
+    if (currentUser) {
+      signOutCurrentUser();
+    } else {
+      openModal();
+    }
+  });
+}
+
+if (closeModalBtn) {
+  closeModalBtn.addEventListener('click', closeModal);
+}
+
+if (signInModal) {
+  signInModal.addEventListener('click', event => {
+    if (event.target.hasAttribute('data-close') || event.target.classList.contains('modal-backdrop')) {
+      closeModal();
+    }
+  });
+}
+
+if (fakeGoogleBtn) {
+  fakeGoogleBtn.addEventListener('click', signInWithGoogle);
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    closeModal();
+  }
+});
+
+if (menuBtn && navLinks) {
+  menuBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+    });
+  });
+}
+
+if (brandLinks.length) {
+  brandLinks.forEach(link => {
+    link.addEventListener('click', handleLogoClick);
+  });
+}
+
+
+function setContactStatus(message, type) {
+  if (!contactStatus) return;
+  contactStatus.textContent = message || '';
+  contactStatus.className = 'form-status' + (message ? ' show' : '') + (type ? ' ' + type : '');
+}
+
+function formatDashboardDate(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Just now';
+  return date.toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function escapeAttribute(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderMessageDashboard(messages) {
+  if (!dashboardList) return;
+
+  dashboardList.innerHTML = '';
+
+  if (totalMessagesEl) totalMessagesEl.textContent = String(messages.length);
+
+  const now = new Date();
+  const todayCount = messages.filter(item => {
+    const d = item.createdAt;
+    return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  }).length;
+
+  if (todayMessagesEl) todayMessagesEl.textContent = String(todayCount);
+  if (latestSenderEl) latestSenderEl.textContent = messages.length ? messages[0].name : '—';
+
+  if (dashboardLoading) dashboardLoading.classList.add('hidden-panel');
+
+  if (!messages.length) {
+    if (dashboardEmpty) dashboardEmpty.classList.remove('hidden-panel');
+    return;
+  }
+
+  if (dashboardEmpty) dashboardEmpty.classList.add('hidden-panel');
+
+  messages.forEach(item => {
+    const article = document.createElement('article');
+    article.className = 'message-card';
+    article.innerHTML = `
+      <div class="message-card-head">
+        <div>
+          <span class="message-badge">New message</span>
+          <h2 class="message-name">${escapeHtml(item.name || 'Visitor')}</h2>
+          <a class="message-email" href="mailto:${escapeAttribute(item.email || '')}">${escapeHtml(item.email || '')}</a>
+        </div>
+        <div class="message-date">${escapeHtml(formatDashboardDate(item.createdAt))}</div>
+      </div>
+      <p class="message-body">${escapeHtml(item.message || '')}</p>
+    `;
+    dashboardList.appendChild(article);
+  });
+}
+
+async function loadMessagesDashboard() {
+  if (!dashboardList) return;
+
+  if (!db) {
+    if (dashboardLoading) {
+      dashboardLoading.classList.remove('hidden-panel');
+      dashboardLoading.innerHTML = '<h2>Firebase is not ready</h2><p>Firestore is required to load messages.</p>';
+    }
+    return;
+  }
+
+  if (!auth) {
+    window.location.href = 'signin.html';
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) {
+    if (signInNotice) signInNotice.classList.remove('hidden-panel');
+    if (dashboardLoading) dashboardLoading.classList.add('hidden-panel');
+    return;
+  }
+
+  if (signInNotice) signInNotice.classList.add('hidden-panel');
+  if (dashboardLoading) dashboardLoading.classList.remove('hidden-panel');
+
+  try {
+    const snapshot = await db.collection('contactMessages').orderBy('createdAt', 'desc').get();
+    const messages = snapshot.docs.map(doc => {
+      const data = doc.data() || {};
+      return {
+        id: doc.id,
+        name: data.name || '',
+        email: data.email || '',
+        message: data.message || '',
+        createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate() : new Date()
+      };
+    });
+    renderMessageDashboard(messages);
+  } catch (error) {
+    console.error('Dashboard load error:', error);
+    if (dashboardLoading) {
+      dashboardLoading.classList.remove('hidden-panel');
+      dashboardLoading.innerHTML = '<h2>Could not load messages</h2><p>Check Firestore rules and make sure the collection exists.</p>';
+    }
+  }
+}
+
+if (refreshMessagesBtn) {
+  refreshMessagesBtn.addEventListener('click', loadMessagesDashboard);
+}
+
+if (dashboardUserBtn) {
+  dashboardUserBtn.addEventListener('click', () => {
+    if (currentUser) {
+      signOutCurrentUser();
+      setTimeout(() => {
+        window.location.href = 'signin.html';
+      }, 350);
+    } else {
+      window.location.href = 'signin.html';
+    }
+  });
+}
+
+if (contactForm) {
+  contactForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const formData = new FormData(contactForm);
+    const name = String(formData.get('name') || '').trim();
+    const email = String(formData.get('email') || '').trim();
+    const message = String(formData.get('message') || '').trim();
+
+    if (!name || !email || !message) {
+      setContactStatus('Please fill in your name, email, and message.', 'error');
+      return;
+    }
+
+    if (!db || !firebase.firestore) {
+      setContactStatus('Firestore is not ready. Load Firebase Firestore first.', 'error');
+      return;
+    }
+
+    const submitButton = contactForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
+    setContactStatus('Sending your message...', 'success');
+
+    try {
+      await db.collection('contactMessages').add({
+        name,
+        email,
+        message,
+        status: 'unread',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        source: 'contact-form'
+      });
+
+      const emailResult = await sendContactEmailNotification({ name, email, message });
+
+      contactForm.reset();
+
+      if (emailResult.ok) {
+        setContactStatus('Your message was sent successfully. It is saved in the dashboard and sent to your email.', 'success');
+        showToast('Message saved and emailed successfully.');
+      } else if (emailResult.skipped) {
+        setContactStatus('Your message was sent successfully. It is saved in the dashboard. Add your EmailJS keys in script.js to receive it by email too.', 'success');
+        showToast('Message saved successfully.');
+      } else {
+        setContactStatus('Your message was saved in the dashboard, but email notification failed. Check EmailJS settings.', 'error');
+      }
+    } catch (error) {
+      console.error('Contact send error:', error);
+      setContactStatus('Could not send your message. Check Firestore rules and try again.', 'error');
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+}
+
+if (auth) {
+  auth.onAuthStateChanged((user) => {
+    updateAuthUI(user);
+    if (dashboardUserBtn) {
+      if (user) {
+        const rawName = user.displayName || user.email || 'Account';
+        dashboardUserBtn.textContent = 'Sign Out';
+        dashboardUserBtn.setAttribute('title', rawName);
+      } else {
+        dashboardUserBtn.textContent = 'Sign In';
+      }
+    }
+    if (dashboardList) {
+      loadMessagesDashboard();
+    }
+  });
+}
+
+
+hydrateFindLocationInputs();
+
+if (nearMeBtn) {
+  nearMeBtn.addEventListener('click', detectCurrentLocation);
+}
+
+if (applyCityFilterBtn) {
+  applyCityFilterBtn.addEventListener('click', applyCityFilter);
+}
+
+if (clearLocationFiltersBtn) {
+  clearLocationFiltersBtn.addEventListener('click', clearLocationFilters);
+}
+
+if (citySearchInput) {
+  citySearchInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      applyCityFilter();
+    }
+  });
+}
+
+if (sortBySelect) {
+  sortBySelect.addEventListener('change', () => {
+    sortMode = sortBySelect.value || 'newest';
+    localStorage.setItem('perpet-sort-mode', sortMode);
+    renderPets();
+  });
+}
+
+if (distanceRadiusSelect) {
+  distanceRadiusSelect.addEventListener('change', () => {
+    radiusMode = distanceRadiusSelect.value || 'all';
+    localStorage.setItem('perpet-radius-mode', radiusMode);
+    renderPets();
+  });
+}
+
+if (useCurrentLocationBtn) {
+  useCurrentLocationBtn.addEventListener('click', capturePetLocationForListing);
+}
+
+loadSiteSettings();
+trackPageView();
+syncPetsFromFirestore();
