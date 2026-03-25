@@ -1,1 +1,0 @@
-Fixed a JavaScript syntax error in script.js that prevented the whole site logic from running. Near me now saves approximate user locations into Firestore userLocations when permission is granted.
