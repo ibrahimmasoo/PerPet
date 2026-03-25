@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages Dashboard | PerPet</title>
+  <meta name="description" content="View contact messages sent through PerPet." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/jpeg" href="favicon.jpg">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" onclick="handleLogoClick(event)" aria-label="PerPet home">
+        <img src="logo.jpg" alt="PerPet logo" class="logo-img">
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html">Find a Pet</a>
+        <a href="list-pet.html">List a Pet</a>
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="messages-dashboard.html" class="active">Messages</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="dashboardUserBtn" type="button">Sign In</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-shell">
+    <div class="container">
+      <div class="dashboard-header">
+        <div>
+          <span class="eyebrow">Inbox</span>
+          <h1>Messages Dashboard</h1>
+          <p>Every message submitted from the Contact page is stored in Firebase and appears here. Sign in with your PerPet account to review the inbox.</p>
+        </div>
+        <div class="dashboard-actions">
+          <a class="btn btn-light" href="contact.html">Go to Contact Page</a>
+          <button class="btn btn-dark" id="refreshMessagesBtn" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <section class="dashboard-stats">
+        <article class="stat-card">
+          <h3>Total messages</h3>
+          <strong id="totalMessages">0</strong>
+        </article>
+        <article class="stat-card">
+          <h3>Messages today</h3>
+          <strong id="todayMessages">0</strong>
+        </article>
+        <article class="stat-card">
+          <h3>Latest sender</h3>
+          <strong id="latestSender">—</strong>
+        </article>
+      </section>
+
+      <section id="signInNotice" class="dashboard-empty hidden-panel">
+        <h2>Sign in required</h2>
+        <p>Open your PerPet account first, then come back here to view the saved messages.</p>
+      </section>
+
+      <section id="dashboardLoading" class="dashboard-loading">
+        <h2>Loading messages...</h2>
+        <p>Checking your account and reading the Firebase inbox.</p>
+      </section>
+
+      <section id="dashboardEmpty" class="dashboard-empty hidden-panel">
+        <h2>No messages yet</h2>
+        <p>As soon as someone sends a message from the contact form, it will appear here.</p>
+      </section>
+
+      <section id="messagesList" class="messages-list"></section>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
