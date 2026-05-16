@@ -8,7 +8,72 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=admin8" />
+  <link rel="stylesheet" href="style.css?v=admin9" />
+  <style>
+    .file-upload-label { display: flex; flex-direction: column; gap: .5rem; }
+
+    .file-upload-area {
+      position: relative;
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      overflow: hidden;
+    }
+    .file-upload-area:hover,
+    .file-upload-area.drag-over {
+      border-color: #111;
+      background: #f9f9f7;
+    }
+    .file-input-hidden {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    .file-upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      pointer-events: none;
+    }
+    .upload-icon { font-size: 2rem; }
+    .upload-text { font-weight: 600; font-size: .95rem; }
+    .upload-hint { font-size: .8rem; color: #6b7280; }
+
+    .pet-image-preview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+    .remove-image {
+      position: absolute;
+      top: 8px; right: 8px;
+      z-index: 3;
+      font-size: .75rem;
+      padding: .25rem .6rem;
+      background: rgba(255,255,255,.9);
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .field-error {
+      color: #dc2626;
+      font-size: .82rem;
+      margin-top: .2rem;
+    }
+  </style>
 </head>
 <body>
 <!-- hi im here -->
@@ -20,11 +85,11 @@
       </a>
 
       <nav class="nav-links" id="navLinks">
-        <a href="find-pet.html" >Find a Pet</a>
+        <a href="find-pet.html">Find a Pet</a>
         <a href="list-pet.html" class="active">List a Pet</a>
-        <a href="why-perpet.html" >Why PerPet</a>
-        <a href="contact.html" >Contact</a>
-              <a href="admin-dashboard.html" id="adminNavLink" class="admin-nav-link hidden">Admin</a>
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="admin-dashboard.html" id="adminNavLink" class="admin-nav-link hidden">Admin</a>
       </nav>
 
       <div class="nav-actions">
@@ -73,10 +138,29 @@
                 <span>Age (Years)</span>
                 <input type="number" name="age" min="0" max="30" placeholder="e.g. 2" required />
               </label>
-              <label>
-                <span>Image URL</span>
-                <input type="url" name="image" placeholder="https://images.unsplash.com/..." required />
+
+              <!-- CHANGED: replaced <input type="url" name="image"> with file upload -->
+              <label class="file-upload-label">
+                <span>Pet Photo</span>
+                <div class="file-upload-area" id="fileUploadArea">
+                  <input
+                    type="file"
+                    id="petImageInput"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    class="file-input-hidden"
+                  />
+                  <div class="file-upload-placeholder" id="fileUploadPlaceholder">
+                    <span class="upload-icon">📷</span>
+                    <span class="upload-text">Click or drag to upload a photo</span>
+                    <span class="upload-hint">JPEG, PNG, GIF or WebP · max 5 MB</span>
+                  </div>
+                  <img id="petImagePreview" class="pet-image-preview hidden" alt="Preview" />
+                  <button type="button" class="btn btn-light remove-image hidden" id="removeImageBtn">✕ Remove</button>
+                </div>
+                <p class="field-error hidden" id="imageError"></p>
               </label>
+              <!-- END CHANGE -->
+
             </div>
 
             <label>
@@ -124,7 +208,6 @@
   <footer class="site-footer">
     <div class="container footer-wrap">
       <a class="brand footer-brand brand-home" href="index.html">
-        
         <span>PerPet</span>
       </a>
       <p id="siteFooterText">© 2026 PerPet. All rights reserved.</p>
@@ -147,10 +230,101 @@
       <small>Sign in with your Google account to continue.</small>
     </div>
   </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="script.js?v=admin8"></script>
+  <!-- ADDED: Firebase Storage -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
+  <!-- ADDED: Image upload logic — runs before script.js -->
+  <script>
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+    const imageInput     = document.getElementById('petImageInput');
+    const imagePreview   = document.getElementById('petImagePreview');
+    const placeholder    = document.getElementById('fileUploadPlaceholder');
+    const removeBtn      = document.getElementById('removeImageBtn');
+    const imageError     = document.getElementById('imageError');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+
+    fileUploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      fileUploadArea.classList.add('drag-over');
+    });
+    fileUploadArea.addEventListener('dragleave', function() {
+      fileUploadArea.classList.remove('drag-over');
+    });
+    fileUploadArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      fileUploadArea.classList.remove('drag-over');
+      var file = e.dataTransfer.files[0];
+      if (file) handleImageFile(file);
+    });
+
+    imageInput.addEventListener('change', function() {
+      if (imageInput.files[0]) handleImageFile(imageInput.files[0]);
+    });
+
+    removeBtn.addEventListener('click', function() {
+      clearImagePreview();
+      imageInput.value = '';
+    });
+
+    function showImageError(msg) {
+      imageError.textContent = msg;
+      imageError.classList.remove('hidden');
+    }
+
+    function clearImageError() {
+      imageError.textContent = '';
+      imageError.classList.add('hidden');
+    }
+
+    function clearImagePreview() {
+      imagePreview.src = '';
+      imagePreview.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+      clearImageError();
+    }
+
+    function handleImageFile(file) {
+      clearImageError();
+
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        showImageError('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        showImageError('File too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Maximum is 5 MB.');
+        return;
+      }
+
+      var objectUrl = URL.createObjectURL(file);
+      imagePreview.onload  = function() { URL.revokeObjectURL(objectUrl); };
+      imagePreview.onerror = function() {
+        showImageError('Could not preview this file. Please try a different image.');
+        clearImagePreview();
+      };
+      imagePreview.src = objectUrl;
+      imagePreview.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      removeBtn.classList.remove('hidden');
+    }
+
+    // Called by script.js during form submit
+    window.uploadPetImage = async function(file) {
+      var storageRef = firebase.storage().ref();
+      var ext        = file.name.split('.').pop();
+      var filename   = 'pets/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+      var fileRef    = storageRef.child(filename);
+      await fileRef.put(file);
+      return await fileRef.getDownloadURL();
+    };
+  </script>
+
+  <script src="script.js?v=admin9"></script>
 </body>
 </html>
