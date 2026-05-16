@@ -751,33 +751,78 @@ if (searchInput) {
   searchInput.addEventListener('input', renderPets);
 }
 
+// ── CHANGED: petForm submit — now handles file upload instead of image URL ──
 if (petForm) {
-  petForm.addEventListener('submit', event => {
+  petForm.addEventListener('submit', async event => {
     event.preventDefault();
 
     const formData = new FormData(petForm);
+    const submitBtn = petForm.querySelector('[type="submit"]');
 
-    const name = String(formData.get('name') || '').trim();
-    const type = String(formData.get('type') || '').trim().toLowerCase();
-    const age = Number(formData.get('age'));
-    const image = String(formData.get('image') || '').trim();
+    const name        = String(formData.get('name')        || '').trim();
+    const type        = String(formData.get('type')        || '').trim().toLowerCase();
+    const age         = Number(formData.get('age'));
     const description = String(formData.get('description') || '').trim();
-    const city = String(formData.get('city') || '').trim();
-    const area = String(formData.get('area') || '').trim();
-    const lat = Number(formData.get('lat') || 0);
-    const lng = Number(formData.get('lng') || 0);
+    const city        = String(formData.get('city')        || '').trim();
+    const area        = String(formData.get('area')        || '').trim();
+    const lat         = Number(formData.get('lat')         || 0);
+    const lng         = Number(formData.get('lng')         || 0);
 
-    if (!name || !type || !age || !image || !description || !city) {
-      showToast('Please fill in all fields.');
+    // ── Get the selected file from the upload control ──
+    const imageInput = document.getElementById('petImageInput');
+    const file = imageInput && imageInput.files[0];
+
+    // ── Guard: required text fields ──
+    if (!name || !type || !age || !description || !city) {
+      showToast('Please fill in all required fields.');
       return;
     }
 
+    // ── Guard: no image selected ──
+    if (!file) {
+      if (typeof showImageError === 'function') {
+        showImageError('Please select a photo before submitting.');
+      } else {
+        showToast('Please select a photo before submitting.');
+      }
+      return;
+    }
+
+    // ── Upload spinner ──
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading photo…';
+
+    let imageUrl = '';
+
+    try {
+      // ── Upload to Firebase Storage via helper defined in list-pet.html ──
+      if (typeof window.uploadPetImage === 'function') {
+        imageUrl = await window.uploadPetImage(file);
+      } else {
+        // Fallback: if Storage helper is missing for any reason
+        throw new Error('uploadPetImage is not defined. Make sure firebase-storage-compat.js is loaded.');
+      }
+    } catch (uploadError) {
+      console.error('Image upload failed:', uploadError);
+      if (typeof showImageError === 'function') {
+        showImageError('Photo upload failed. Check your connection and try again.');
+      } else {
+        showToast('Photo upload failed. Please try again.');
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post Pet for Adoption';
+      return;
+    }
+
+    submitBtn.textContent = 'Saving listing…';
+
+    // ── Build pet object — imageUrl is now a normal https:// Storage URL ──
     const newPet = {
       id: Date.now(),
       name,
       type,
       age,
-      image,
+      image: imageUrl,
       description,
       city,
       area,
@@ -790,12 +835,16 @@ if (petForm) {
     saveCustomPets();
     petForm.reset();
 
+    // Clear the image preview after reset
+    if (typeof clearImagePreview === 'function') clearImagePreview();
+
+    // ── Save to Firestore (same as before, imageUrl is a plain URL) ──
     if (db && typeof firebase !== 'undefined' && firebase.firestore) {
       db.collection('pets').add({
         name,
         type,
         age,
-        image,
+        image: imageUrl,
         description,
         city,
         area,
@@ -813,13 +862,14 @@ if (petForm) {
       });
     }
 
-    showToast(`${newPet.name} was added successfully with location details.`);
+    showToast(`${newPet.name} was added successfully.`);
 
     setTimeout(() => {
       window.location.href = 'find-pet.html';
     }, 500);
   });
 }
+// ── END CHANGE ──
 
 if (signInBtn) {
   signInBtn.addEventListener('click', () => {
