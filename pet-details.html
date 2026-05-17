@@ -1,0 +1,8 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Pet Details</title><link rel="stylesheet" href="style.css"></head><body><div class="container" style="padding:40px 20px;"><div id="petDetails"></div></div><script>
+const pet = JSON.parse(localStorage.getItem('selectedPet') || '{}');
+if(!pet.id){document.getElementById('petDetails').innerHTML='<h2>No pet selected</h2>';}
+else {
+document.getElementById('petDetails').innerHTML=`<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;"><img src="${pet.image}" style="width:350px;max-width:100%;border-radius:20px;object-fit:cover;"><div><h1>${pet.name}</h1><p><b>Type:</b> ${pet.type}</p><p><b>Age:</b> ${pet.age} years</p><p><b>Description:</b> ${pet.description}</p><p><b>Address:</b> ${pet.city || 'Unknown'}</p><button id="confirmBtn" class="btn btn-dark">Confirm Adoption</button></div></div>`;
+document.getElementById('confirmBtn').onclick=()=>window.location.href='adoption-map.html';
+}
+</script></body></html>
