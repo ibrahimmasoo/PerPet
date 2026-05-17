@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List a Pet | PerPet</title>
+  <meta name="description" content="PerPet static GitHub Pages site" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=admin9" />
+  <style>
+    .file-upload-label { display: flex; flex-direction: column; gap: .5rem; }
+
+    .file-upload-area {
+      position: relative;
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      overflow: hidden;
+    }
+    .file-upload-area:hover,
+    .file-upload-area.drag-over {
+      border-color: #111;
+      background: #f9f9f7;
+    }
+    .file-input-hidden {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    .file-upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      pointer-events: none;
+    }
+    .upload-icon { font-size: 2rem; }
+    .upload-text { font-weight: 600; font-size: .95rem; }
+    .upload-hint { font-size: .8rem; color: #6b7280; }
+
+    .pet-image-preview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+    .remove-image {
+      position: absolute;
+      top: 8px; right: 8px;
+      z-index: 3;
+      font-size: .75rem;
+      padding: .25rem .6rem;
+      background: rgba(255,255,255,.9);
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .field-error {
+      color: #dc2626;
+      font-size: .82rem;
+      margin-top: .2rem;
+    }
+
+    input[type="number"] {
+      align-self: flex-start;
+      
+    }
+
+  </style>
+</head>
+<body>
+<!-- hi im here -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand brand-home" href="index.html" aria-label="PerPet home">
+        <img src="logo.jpg?v=admin8" alt="PerPet logo" class="logo-img">
+        <span>PerPet</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="find-pet.html">Find a Pet</a>
+        <a href="list-pet.html" class="active">List a Pet</a>
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="admin-dashboard.html" id="adminNavLink" class="admin-nav-link hidden">Admin</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="signInBtn" type="button">Sign In</button>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="page-hero">
+      <div class="container">
+        <div class="hero-panel">
+          <span class="eyebrow" id="listEyebrow">List a Pet</span>
+          <h1 id="listHeroTitle">Help a pet find a forever family.</h1>
+          <p id="listHeroSubtitle">Use this page to submit a pet for adoption. The listing is saved in the browser so the site still works as a static GitHub Pages website.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="add-pet section">
+      <div class="container form-wrap">
+        <div class="form-card">
+          <div class="section-head left">
+            <div>
+              <h2 id="listSectionTitle">List a Pet</h2>
+              <p id="listSectionText">Provide accurate details so adopters can discover the perfect match.</p>
+            </div>
+          </div>
+
+          <form id="petForm" class="pet-form">
+            <div class="form-grid">
+              <label>
+                <span>Pet Name</span>
+                <input type="text" name="name" placeholder="e.g. Buddy" required />
+              </label>
+              <label>
+                <span>Type</span>
+                <select name="type" required>
+                  <option value="dog">Dog</option>
+                  <option value="cat">Cat</option>
+                </select>
+              </label>
+              <label style="align-self: flex-start;">
+                <span>Age (Years)</span>
+                <input type="number" name="age" min="0" max="30" placeholder="e.g. 2" required />
+              </label>
+
+              <!-- CHANGED: replaced <input type="url" name="image"> with file upload -->
+              <label class="file-upload-label">
+                <span>Pet Photo</span>
+                <div class="file-upload-area" id="fileUploadArea">
+                  <input
+                    type="file"
+                    id="petImageInput"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    class="file-input-hidden"
+                  />
+                  <div class="file-upload-placeholder" id="fileUploadPlaceholder">
+                    <span class="upload-icon">📷</span>
+                    <span class="upload-text">Click or drag to upload a photo</span>
+                    <span class="upload-hint">JPEG, PNG, GIF or WebP · max 5 MB</span>
+                  </div>
+                  <img id="petImagePreview" class="pet-image-preview hidden" alt="Preview" />
+                  <button type="button" class="btn btn-light remove-image hidden" id="removeImageBtn">✕ Remove</button>
+                </div>
+                <p class="field-error hidden" id="imageError"></p>
+              </label>
+              <!-- END CHANGE -->
+
+            </div>
+
+            <label>
+              <span>Description</span>
+              <textarea name="description" rows="5" placeholder="Tell us about the pet's personality, habits, and needs..." required></textarea>
+            </label>
+
+            <div class="location-form-box">
+              <div class="section-head left compact-head">
+                <div>
+                  <h3>Location details</h3>
+                  <p>Add a city at minimum. You can also use your current location so nearby users can find this pet faster.</p>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span>Adress</span>
+                  <input type="text" name="city" id="petCityInput" placeholder="e.g. Agdaci Mah./ Merkez / Bartin / Turkey" />
+                </label>
+              </div>
+
+              <div class="location-form-actions">
+                <button class="btn btn-light" type="button" id="useCurrentLocationBtn">Use my current location</button>
+                <p class="location-status" id="petLocationStatus">You can submit with city only, or add your live location for better nearby matching.</p>
+              </div>
+
+              <input type="hidden" name="lat" id="petLatInput" />
+              <input type="hidden" name="lng" id="petLngInput" />
+            </div>
+
+            <button class="btn btn-dark full" type="submit">Post Pet for Adoption</button>
+            <p class="form-note">After submission, you will be redirected to the Find a Pet page.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <a class="brand footer-brand brand-home" href="index.html">
+        <span>PerPet</span>
+      </a>
+      <p id="siteFooterText">© 2026 PerPet. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="why-perpet.html">Why PerPet</a>
+        <a href="contact.html">Contact</a>
+        <a href="find-pet.html">Available Pets</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal hidden" id="signInModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" id="closeModalBtn" type="button" aria-label="Close">×</button>
+      <div class="modal-icon">🐾</div>
+      <h3>Welcome to PerPet</h3>
+      <p>Join our community of pet lovers and find your perfect companion.</p>
+      <button class="btn btn-light full" type="button" id="fakeGoogleBtn">Continue with Google</button>
+      <small>Sign in with your Google account to continue.</small>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <!-- ADDED: Firebase Storage -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+  <!-- ADDED: Image upload logic — runs before script.js -->
+  <script>
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+    const imageInput     = document.getElementById('petImageInput');
+    const imagePreview   = document.getElementById('petImagePreview');
+    const placeholder    = document.getElementById('fileUploadPlaceholder');
+    const removeBtn      = document.getElementById('removeImageBtn');
+    const imageError     = document.getElementById('imageError');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+
+    fileUploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      fileUploadArea.classList.add('drag-over');
+    });
+    fileUploadArea.addEventListener('dragleave', function() {
+      fileUploadArea.classList.remove('drag-over');
+    });
+    fileUploadArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      fileUploadArea.classList.remove('drag-over');
+      var file = e.dataTransfer.files[0];
+      if (file) handleImageFile(file);
+    });
+
+    imageInput.addEventListener('change', function() {
+      if (imageInput.files[0]) handleImageFile(imageInput.files[0]);
+    });
+
+    removeBtn.addEventListener('click', function() {
+      clearImagePreview();
+      imageInput.value = '';
+    });
+
+    function showImageError(msg) {
+      imageError.textContent = msg;
+      imageError.classList.remove('hidden');
+    }
+
+    function clearImageError() {
+      imageError.textContent = '';
+      imageError.classList.add('hidden');
+    }
+
+    function clearImagePreview() {
+      imagePreview.src = '';
+      imagePreview.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+      clearImageError();
+    }
+
+    function handleImageFile(file) {
+      clearImageError();
+
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        showImageError('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        showImageError('File too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Maximum is 5 MB.');
+        return;
+      }
+
+      var objectUrl = URL.createObjectURL(file);
+      imagePreview.onload  = function() { URL.revokeObjectURL(objectUrl); };
+      imagePreview.onerror = function() {
+        showImageError('Could not preview this file. Please try a different image.');
+        clearImagePreview();
+      };
+      imagePreview.src = objectUrl;
+      imagePreview.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      removeBtn.classList.remove('hidden');
+    }
+
+    // Called by script.js during form submit
+    // Saves image locally as Base64 so uploads work even on GitHub Pages.
+    window.uploadPetImage = async function(file) {
+      return await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+
+        reader.onload = function(event) {
+          resolve(event.target.result);
+        };
+
+        reader.onerror = function() {
+          reject(new Error('Could not read image file.'));
+        };
+
+        reader.readAsDataURL(file);
+      });
+    };
+  </script>
+
+  <script src="script.js?v=admin9"></script>
+</body>
+</html>
