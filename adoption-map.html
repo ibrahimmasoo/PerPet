@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Adoption Map</title><link rel="stylesheet" href="style.css"></head><body><div class="container" style="padding:40px 20px;"><h1>Pet Location</h1><p id="distanceText">Loading distance...</p><iframe id="mapFrame" width="100%" height="500" style="border:0;border-radius:20px;" loading="lazy"></iframe></div><script>
+const pet = JSON.parse(localStorage.getItem('selectedPet') || '{}');
+function init(lat,lng){
+const petLat=pet.lat||41.0082; const petLng=pet.lng||28.9784;
+const distance=getDistance(lat,lng,petLat,petLng).toFixed(1);
+document.getElementById('distanceText').innerText=`Distance from you: ${distance} km`;
+document.getElementById('mapFrame').src=`https://maps.google.com/maps?q=${petLat},${petLng}&z=15&output=embed`;
+}
+function getDistance(lat1, lon1, lat2, lon2){const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>init(pos.coords.latitude,pos.coords.longitude),()=>init(0,0));} else {init(0,0);}
+</script></body></html>
